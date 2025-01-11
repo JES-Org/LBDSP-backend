@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL = 'apps.accounts.CustomUser'
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 
 # Application definition
@@ -33,6 +33,7 @@ INSTALLED_APPS = [
 
     #local
     'apps.accounts',
+    'apps.pharmacy',
 ]
 
 MIDDLEWARE = [

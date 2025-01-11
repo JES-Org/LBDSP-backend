@@ -7,6 +7,9 @@ class Pharmacy(models.Model):
     email = models.EmailField(unique=True)
     website = models.URLField(null=True, blank=True)
     operating_hours = models.CharField(max_length=255)
+    is_verified = models.BooleanField(default=False)
+    image = models.ImageField(upload_to='pharmacies/', blank=True, null=True)
+    delivery_available = models.BooleanField(default=False)
     latitude = models.FloatField()
     longitude = models.FloatField()
 
