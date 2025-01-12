@@ -1,12 +1,7 @@
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 
-from django.urls import path, include
-
-from .views.pharmacy import PharmacyViewset
-
-router = DefaultRouter()
-router.register("pharmacies", PharmacyViewset)
+from .views.pharmacy import PharmacyAPIView
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('pharmacies/', PharmacyAPIView.as_view(), name='pharmacy-list-create'),
 ]

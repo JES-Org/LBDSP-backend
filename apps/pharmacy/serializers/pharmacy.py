@@ -5,4 +5,4 @@ from ..models.pharmacy import Pharmacy
 class PharmacySerializer(serializers.ModelSerializer):
     class Meta:
         model = Pharmacy
-        fields = '__all__'
+        fields = ['id', 'name', 'address', 'phone', 'latitude', 'longitude']
