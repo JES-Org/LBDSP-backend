@@ -14,6 +14,15 @@ class MedicationDetailAPIView(APIView):
         except Medication.DoesNotExist:
             return None
     
+    def get(self, request, pk, *args, **kwargs):
+        medication = self.get_object(pk)
+        if not medication:
+            return Response({"error": "Medication not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = MedicationSerializer(medication)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     def put(self, request, pk, *args, **kwargs):
         medication = self.get_object(pk=pk)
         if not medication:
