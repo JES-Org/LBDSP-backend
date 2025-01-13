@@ -1,12 +1,14 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework import status, permissions
+from rest_framework.decorators import permission_classes
 
 from ..serializers.pharmacy import PharmacySerializer
 from ..models.pharmacy import Pharmacy
 
 class PharmacyAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+    
     def get(self, request, *args, **kwargs):
         pharmacies = Pharmacy.objects.all()
         serializer = PharmacySerializer(pharmacies, many=True)
