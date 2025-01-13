@@ -5,8 +5,8 @@ from rest_framework.decorators import permission_classes
 
 from django.db.models import Q
 
-from ..serializers.medication import MedicationSerializer
-from ..models.medication import Medication
+from ..serializers.medication import CategorySerializer, MedicationSerializer
+from ..models.medication import Category, Medication
 
 class MedicationAPIView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -79,3 +79,36 @@ class PharmacyMedicationsAPIView(APIView):
         serializer = MedicationSerializer(medications, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CategoryMedicationsAPIView(APIView):
+    def get(self, request, category_id, *args, **kwargs):
+        medications = Medication.objects.filter(category=category_id)
+        serializer = MedicationSerializer(medications, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class MedicationCategoryAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        categories = Medication.objects.values('category').distinct()
+        serializer = MedicationSerializer(categories, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CategoryAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        if isinstance(request.data, list):
+            serializer = CategorySerializer(data=request.data, many=True)
+        else:
+            serializer = CategorySerializer(data=request.data)
+            
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
