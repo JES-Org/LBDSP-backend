@@ -5,8 +5,9 @@ from rest_framework.decorators import permission_classes
 
 from django.db.models import Q
 
-from ..serializers.medication import CategorySerializer, MedicationSerializer
-from ..models.medication import Category, Medication
+from apps.pharmacy.models.pharmacy import Pharmacy
+from apps.pharmacy.serializers.medication import CategorySerializer, MedicationSerializer
+from apps.pharmacy.models.medication import Category, Medication
 
 class MedicationAPIView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -80,17 +81,36 @@ class PharmacyMedicationsAPIView(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class PharmacyMedicationDetailAPIView(APIView):
+    def get(self, request, pharmacy_id, *args, **kwargs):
+        try:
+            pharmacy = Pharmacy.objects.get(id=pharmacy_id)
+            medications = Medication.objects.filter(pharmacy=pharmacy)
+            serializer = MedicationSerializer(medications, many=True)
+            
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Pharmacy.DoesNotExist:
+            return Response({"error": "pharmacy not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def post(self, request, pharmacy_id, *args, **kwargs):
+        try:
+            pharmacy = Pharmacy.objects.get(id=pharmacy_id)
+
+            medication_data = request.data
+            medication_data['pharmacy'] = pharmacy_id
+
+            serializer = MedicationSerializer(data=medication_data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Pharmacy.DoesNotExist:
+            return Response({"error": "pharmacy not found"}, status=status.HTTP_404_NOT_FOUND)
+
 class CategoryMedicationsAPIView(APIView):
     def get(self, request, category_id, *args, **kwargs):
         medications = Medication.objects.filter(category=category_id)
         serializer = MedicationSerializer(medications, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-class MedicationCategoryAPIView(APIView):
-    def get(self, request, *args, **kwargs):
-        categories = Medication.objects.values('category').distinct()
-        serializer = MedicationSerializer(categories, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
