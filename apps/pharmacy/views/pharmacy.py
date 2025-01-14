@@ -59,3 +59,14 @@ class PharmacyDetailAPIView(APIView):
         pharmacy.delete()
 
         return Response({"message": "Pharmacy deleted"}, status=status.HTTP_204_NO_CONTENT)
+
+class PharmacySearchAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        query = request.query_params.get('q', None)
+        if query:
+            pharmacies = Pharmacy.objects.filter(name__icontains=query)
+        else:
+            pharmacies = Pharmacy.objects.all()
+
+        serializer = PharmacySerializer(pharmacies, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

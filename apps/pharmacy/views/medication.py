@@ -69,7 +69,10 @@ class MedicationSearchAPIView(APIView):
         if not query:
             return Response({"error": "Query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        medications = Medication.objects.filter(Q(name__icontains=query) | Q(category__icontains=query))
+        medications = Medication.objects.filter(Q(name__icontains=query) | Q(category__name__icontains=query))
+        if not medications.exists():
+            return Response({"message": "No medications found matching the query"}, status=status.HTTP_200_OK)
+
         serializer = MedicationSerializer(medications, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
