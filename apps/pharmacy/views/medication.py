@@ -76,13 +76,6 @@ class MedicationSearchAPIView(APIView):
 
 class PharmacyMedicationsAPIView(APIView):
     def get(self, request, pharmacy_id, *args, **kwargs):
-        medications = Medication.objects.filter(pharmacy=pharmacy_id)
-        serializer = MedicationSerializer(medications, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-class PharmacyMedicationDetailAPIView(APIView):
-    def get(self, request, pharmacy_id, *args, **kwargs):
         try:
             pharmacy = Pharmacy.objects.get(id=pharmacy_id)
             medications = Medication.objects.filter(pharmacy=pharmacy)
@@ -97,15 +90,64 @@ class PharmacyMedicationDetailAPIView(APIView):
             pharmacy = Pharmacy.objects.get(id=pharmacy_id)
 
             medication_data = request.data
-            medication_data['pharmacy'] = pharmacy_id
+            medication_data['pharmacy'] = pharmacy.id
 
             serializer = MedicationSerializer(data=medication_data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         except Pharmacy.DoesNotExist:
-            return Response({"error": "pharmacy not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Pharmacy not found."}, status=status.HTTP_404_NOT_FOUND)
+
+class PharmacyMedicationDetailAPIView(APIView):
+    def get(self, request, pharmacy_id, medication_id, *args, **kwargs):
+        try:
+            pharmacy = Pharmacy.objects.get(id=pharmacy_id)
+        except Pharmacy.DoesNotExist:
+            return Response({"error": "Pharmacy not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            medication = Medication.objects.get(id=medication_id, pharmacy=pharmacy)
+        except Medication.DoesNotExist:
+            return Response({"error": "Medication not found in this pharmacy."}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = MedicationSerializer(medication)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request, pharmacy_id, medication_id, *args, **kwargs):
+        try:
+            pharmacy = Pharmacy.objects.get(id=pharmacy_id)
+        except Pharmacy.DoesNotExist:
+            return Response({"error": "Pharmacy not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            medication = Medication.objects.get(id=medication_id, pharmacy=pharmacy)
+        except Medication.DoesNotExist:
+            return Response({"error": "Medication not found in this pharmacy."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MedicationSerializer(medication, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pharmacy_id, medication_id, *args, **kwargs):
+        try:
+            pharmacy = Pharmacy.objects.get(id=pharmacy_id)
+        except Pharmacy.DoesNotExist:
+            return Response({"error": "Pharmacy not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            medication = Medication.objects.get(id=medication_id, pharmacy=pharmacy)
+        except Medication.DoesNotExist:
+            return Response({"error": "Medication not found in this pharmacy."}, status=status.HTTP_404_NOT_FOUND)
+
+        medication.delete()
+        return Response({"message": "Medication deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 class CategoryMedicationsAPIView(APIView):
     def get(self, request, category_id, *args, **kwargs):
