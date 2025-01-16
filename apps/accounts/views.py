@@ -47,6 +47,21 @@ class RegistrationAPIView(APIView):
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+
+            if user.role == 'pharmacist':
+                pharmacy_id = request.data.get('pharmacy')
+                if pharmacy_id:
+                    from apps.pharmacy.models import Pharmacy, Pharmacist
+                    pharmacy = Pharmacy.objects.get(id=pharmacy_id)
+                    license_number = request.data.get('license_number')
+                    license_image = request.data.get('license_image')
+                    Pharmacist.objects.create(user=user, pharmacy=pharmacy, license_number=license_number, license_image=license_image)
+                else:
+                    return Response(
+                        {"error": "Pharmacy ID is required for pharmacists."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),
