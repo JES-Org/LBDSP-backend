@@ -74,9 +74,9 @@ class PharmacySearchAPIView(APIView):
 
 class NearbyPharmacyAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        user_lat = request.query_params.get('lattitude', None)
-        user_long = request.query_params.get('longitude', None)
-        radius = request.query_params.get('radius', 5)
+        user_lat = float(request.query_params.get('latitude', None))
+        user_long = float(request.query_params.get('longitude', None))
+        radius = float(request.query_params.get('radius', 5))
         if not user_lat or not user_long:
             return Response({"error": "Please provide lattitude and longitude"}, status=status.HTTP_400_BAD_REQUEST)
         
