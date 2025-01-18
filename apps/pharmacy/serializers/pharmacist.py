@@ -10,8 +10,3 @@ class PharmacistSerializer(serializers.ModelSerializer):
         model = Pharmacist
         fields = ['id', 'user', 'pharmacy', 'license_number', 'license_image', 'created_at']
         read_only_fields = ['created_at']
-
-class PharmacistSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Pharmacist
-        fields = ['email', 'first_name', 'last_name', 'password', 'role', 'pharmacist_profile']
