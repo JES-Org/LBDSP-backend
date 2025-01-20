@@ -5,7 +5,7 @@ from ..models.medication import Medication, Category
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['name']
+        fields = ['id', 'name', 'description']
 
 class MedicationSerializer(serializers.ModelSerializer):
     pharmacy_name = serializers.ReadOnlyField(source='pharmacy.name')

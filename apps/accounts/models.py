@@ -6,7 +6,7 @@ from .managers import CustomUserManager
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = [
         ("admin", "admin"), 
-        ("pharmacy", "pharmacy"),
+        ("pharmacist", "pharmacist"),
         ("user", "user"),
     ]
 

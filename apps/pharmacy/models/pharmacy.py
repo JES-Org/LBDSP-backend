@@ -10,8 +10,9 @@ class Pharmacy(models.Model):
     is_verified = models.BooleanField(default=False)
     image = models.ImageField(upload_to='pharmacies/', blank=True, null=True)
     delivery_available = models.BooleanField(default=False)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-
+    latitude = models.FloatField(default= 11.5742)
+    longitude = models.FloatField(default=37.3614)
+  
     def __str__(self):
         return self.name
+    
