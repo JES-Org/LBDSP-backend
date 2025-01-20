@@ -3,8 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 
+from apps.pharmacy.models.medication import Medication
 from apps.pharmacy.serializers.pharmacy import PharmacySerializer
 from apps.pharmacy.models.pharmacy import Pharmacy
+from apps.pharmacy.models.pharmacist import Pharmacist
 from apps.pharmacy.utils.geolocation import calculate_distance
 
 class PharmacyAPIView(APIView):
@@ -92,3 +94,21 @@ class NearbyPharmacyAPIView(APIView):
         
         serializer = PharmacySerializer(nearby_pharmacies, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class PharmacyDashboardAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if user.role != "pharmacist":
+            return Response({"error": "youd do not have permission to access this resource"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            pharmacist = Pharmacist.objects.get(user=user)
+            pharmacy = pharmacist.pharmacy
+
+            total_medications = Medication.objects.filter(pharmacy=pharmacy).count()
+            
+            return Response({"total_medications": total_medications}, status=status.HTTP_200_OK)
+        except Pharmacist.DoesNotExist:
+            return Response({"error": "Pharmacist not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Pharmacy.DoesNotExist:
+            return Response({"error": "Pharmacy not found"}, status=status.HTTP_404_NOT_FOUND)
