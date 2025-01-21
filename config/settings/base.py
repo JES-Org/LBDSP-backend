@@ -133,6 +133,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://lbdsp-backend-production.up.railway.app",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "https://lbdsp-backend-production.up.railway.app",
+]
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
