@@ -4,7 +4,12 @@ from datetime import timedelta
 
 
 SECRET_KEY = config('SECRET_KEY', default='unsafe-secret-key')
-DEBUG = config('DEBUG', cast=bool, default=False)
+env = config('ENVIRONMENT', default='development')
+if env == 'development':
+    DEBUG = True
+else:
+    DEBUG = False
+
 
 from pathlib import Path
 
@@ -36,8 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
       
     #third party
-        'corsheaders',
-
+    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -49,9 +53,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-        'corsheaders.middleware.CorsMiddleware',
-
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
