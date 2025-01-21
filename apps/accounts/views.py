@@ -12,10 +12,11 @@ User = get_user_model()
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework import status
 from .models import CustomUser
-from .serializers import CustomUserSerializer
+from .serializers import CustomUserSerializer,CustomTokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 class CustomUserAPIView(APIView):
     permission_classes = [AllowAny]
@@ -69,3 +70,30 @@ class RegistrationAPIView(APIView):
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class GetCurrentUserAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request,pk=None):
+        print("logout request")
+       
+        try:
+            user=request.user
+            return Response(CustomUserSerializer(user).data) 
+        except User.DoesNotExist:   
+            return Response({"detail":"User not found"},status=status.HTTP_404_NOT_FOUND)   
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer          
+        
+class LogoutView(APIView):
+
+    permission_classes=(IsAuthenticated,)
+    def post(self, request):
+        try:
+            refresh_token=request.data.get('refresh_token')
+            if not refresh_token:
+                return Response({'detail': 'Refresh token is missing.'}, status=status.HTTP_400_BAD_REQUEST)
+            token=RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'detail': 'Error logging out.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
