@@ -3,8 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 
-from ..serializers.pharmacy import PharmacySerializer
-from ..models.pharmacy import Pharmacy
+from apps.pharmacy.serializers.pharmacy import PharmacySerializer
+from apps.pharmacy.models.pharmacy import Pharmacy
+from apps.pharmacy.utils.geolocation import calculate_distance
 
 class PharmacyAPIView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -16,6 +17,7 @@ class PharmacyAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, *args, **kwargs):
+        print("Incoming Data:", request.data)
         serializer = PharmacySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -69,4 +71,25 @@ class PharmacySearchAPIView(APIView):
             pharmacies = Pharmacy.objects.all()
 
         serializer = PharmacySerializer(pharmacies, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class NearbyPharmacyAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        user_lat = float(request.query_params.get('latitude', None))
+        user_long = float(request.query_params.get('longitude', None))
+        radius = float(request.query_params.get('radius', 5))
+        if not user_lat or not user_long:
+            return Response({"error": "Please provide lattitude and longitude"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        pharmacies = Pharmacy.objects.all()
+        nearby_pharmacies = []
+
+        for pharmacy in pharmacies:
+            pharmacy_lat = pharmacy.latitude
+            pharmacy_long = pharmacy.longitude
+            distance = calculate_distance(user_lat, user_long, pharmacy_lat, pharmacy_long)
+            if distance <= radius:
+                nearby_pharmacies.append(pharmacy)
+        
+        serializer = PharmacySerializer(nearby_pharmacies, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

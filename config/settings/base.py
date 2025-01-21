@@ -1,5 +1,7 @@
 # base.py
 from decouple import config
+from datetime import timedelta
+
 
 SECRET_KEY = config('SECRET_KEY', default='unsafe-secret-key')
 DEBUG = config('DEBUG', cast=bool, default=False)
@@ -32,10 +34,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+      
     #third party
+        'corsheaders',
+
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+
 
     #local
     'apps.accounts',
@@ -43,6 +49,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+        'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -71,7 +79,12 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -111,6 +124,9 @@ REST_FRAMEWORK = {
     ],
 }
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Frontend origin
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -140,42 +156,42 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 import os
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'formatters': {
-#         'verbose': {
-#             'format': '{levelname} {asctime} {module} {message}',
-#             'style': '{',
-#         },
-#         'simple': {
-#             'format': '{levelname} {message}',
-#             'style': '{',
-#         },
-#     },
-#     'handlers': {
-#         'console': {
-#             'level': 'INFO',
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'simple',
-#         },
-#         'file': {
-#             'level': 'INFO',
-#             'class': 'logging.FileHandler',
-#             'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
-#             'formatter': 'verbose',
-#         },
-#     },
-#     'loggers': {
-#         'django': {
-#             'handlers': ['console', 'file'],
-#             'level': 'INFO',
-#             'propagate': True,
-#         },
-#         'django.db.backends': {
-#             'handlers': ['console'],
-#             'level': 'ERROR',
-#             'propagate': False,
-#         },
-#     },
-# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
