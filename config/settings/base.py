@@ -130,12 +130,12 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "https://lbdsp-backend-production.up.railway.app",
+    "https://fetanfews.up.railway.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
-    "https://lbdsp-backend-production.up.railway.app",
+    "https://fetanfews.up.railway.app",
 ]
 
 # Internationalization
