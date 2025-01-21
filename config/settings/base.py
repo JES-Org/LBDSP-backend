@@ -125,7 +125,8 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Frontend origin
+    "http://localhost:5173",
+    "https://lbdsp-backend-production.up.railway.app",
 ]
 
 # Internationalization
