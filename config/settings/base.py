@@ -111,7 +111,7 @@ if env == "production":
             'USER': os.getenv("PGUSER", "postgres"),
             'PASSWORD': os.getenv("PGPASSWORD", ""),
             'HOST': os.getenv("PGHOST", "localhost"),
-            'PORT': os.getenv("PGUSER", "5432"),
+            'PORT': os.getenv("PGPORT", "5432"),
         }
     }
 else:
