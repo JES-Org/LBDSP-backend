@@ -107,11 +107,11 @@ if env == "production":
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv("POSTGRES_DB", "railway"),
-            'USER': os.getenv("POSTGRES_USER", "postgres"),
-            'PASSWORD': os.getenv("POSTGRES_PASSWORD", ""),
-            'HOST': os.getenv("POSTGRES_HOST", "localhost"),
-            'PORT': os.getenv("POSTGRES_PORT", "5432"),
+            'NAME': os.getenv("PGDATABASE", "railway"),
+            'USER': os.getenv("PGUSER", "postgres"),
+            'PASSWORD': os.getenv("PGPASSWORD", ""),
+            'HOST': os.getenv("PGHOST", "localhost"),
+            'PORT': os.getenv("PGUSER", "5432"),
         }
     }
 else:
