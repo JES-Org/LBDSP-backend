@@ -16,19 +16,33 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['email', 'password', 'phone_number','first_name', 'last_name']
 
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import authenticate
+from rest_framework import serializers
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-  def validate(self, attrs):
-    print(f"Received attrs: {attrs}")
-    username = attrs.get("username")
-    password = attrs.get("password")
+    username_field = "username"
 
-    user = authenticate(username=username, password=password)
-    if not user:
-        print("Authentication failed")
-        raise serializers.ValidationError(
-            {"detail": "No active account found with the given credentials"}
-        )
-    print(f"Authenticated user: {user}")
-    return super().validate(attrs)
+    def validate(self, attrs):
+        # Accept username instead of email
+        username = attrs.get("username")
+        password = attrs.get("password")
+
+        if not username or not password:
+            raise serializers.ValidationError(
+                {"detail": "Both username and password are required."}
+            )
+
+        # Authenticate the user
+        user = authenticate(username=username, password=password)
+
+        if not user:
+            raise serializers.ValidationError({"detail": "Invalid credentials."})
+
+        if not user.is_active:
+            raise serializers.ValidationError({"detail": "User account is disabled."})
+
+        data = super().validate(attrs)
+        return data
+
+
