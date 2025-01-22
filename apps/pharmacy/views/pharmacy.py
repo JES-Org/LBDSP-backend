@@ -2,9 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from apps.pharmacy.models.medication import Medication
 from apps.pharmacy.serializers.pharmacy import PharmacySerializer
+from apps.pharmacy.serializers.pharmacist import PharmacistSerializer
 from apps.pharmacy.models.pharmacy import Pharmacy
 from apps.pharmacy.models.pharmacist import Pharmacist
 from apps.pharmacy.utils.geolocation import calculate_distance
@@ -63,6 +65,54 @@ class PharmacyDetailAPIView(APIView):
         pharmacy.delete()
 
         return Response({"message": "Pharmacy deleted"}, status=status.HTTP_204_NO_CONTENT)
+
+class PharmacyRegistrationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        pharmacy_data = request.data.get("pharmacy")
+        pharmacist_data = request.data.get("pharmacist")
+
+        if not pharmacy_data or not pharmacist_data:
+            return Response(
+                {"error": "Both pharmacy and pharmacist data are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        pharmacy_serializer = PharmacySerializer(data=pharmacy_data)
+        if pharmacy_serializer.is_valid():
+            pharmacy = pharmacy_serializer.save()
+        else:
+            return Response(
+                {"pharmacy_errors": pharmacy_serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        pharmacist_data["pharmacy"] = pharmacy.id
+
+        pharmacist_serializer = PharmacistSerializer(data=pharmacist_data)
+        if pharmacist_serializer.is_valid():
+            pharmacist_serializer.save(user=request.user)
+
+            user = request.user
+            if user.role != "pharmacist":
+                user.role = "pharmacist"
+                user.save()
+        else:
+            pharmacy.delete()
+            return Response(
+                {"pharmacist_errors": pharmacist_serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "message": "Pharmacy registered successfully.",
+                "pharmacy": pharmacy_serializer.data,
+                "pharmacist": pharmacist_serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 class PharmacySearchAPIView(APIView):
     def get(self, request, *args, **kwargs):

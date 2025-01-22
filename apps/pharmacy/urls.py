@@ -1,11 +1,12 @@
 from django.urls import path
 
-from .views.pharmacy import PharmacyAPIView, PharmacyDetailAPIView, PharmacySearchAPIView, NearbyPharmacyAPIView
+from .views.pharmacy import PharmacyAPIView, PharmacyDetailAPIView, PharmacySearchAPIView, NearbyPharmacyAPIView, PharmacyRegistrationView
 from .views.medication import CategoryAPIView, MedicationDetailAPIView, MedicationAPIView, PharmacyMedicationsAPIView, PharmacyMedicationDetailAPIView, MedicationSearchAPIView
 
 urlpatterns = [
     path('pharmacies/', PharmacyAPIView.as_view(), name='pharmacy-list-create'),
     path('pharmacies/<int:pk>/', PharmacyDetailAPIView.as_view(), name='pharmacy-detail'),
+    path('pharmacies/register/', PharmacyRegistrationView.as_view(), name='pharmacy-register'),
     path('pharmacies/search/', PharmacySearchAPIView.as_view(), name='pharmacy-search'),
     path('pharmacies/<int:pharmacy_id>/medications/', PharmacyMedicationsAPIView.as_view(), name='pharmacy-medication-list-create'),
     path('pharmacies/<int:pharmacy_id>/medications/<int:medication_id>/', PharmacyMedicationDetailAPIView.as_view(), name='pharmacy-medication-detail'),

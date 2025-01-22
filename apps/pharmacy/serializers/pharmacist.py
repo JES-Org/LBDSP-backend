@@ -4,7 +4,7 @@ from apps.pharmacy.models.pharmacist import Pharmacist
 from apps.accounts.serializers import CustomUserSerializer
 
 class PharmacistSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
+    user = CustomUserSerializer(required=False)
 
     class Meta:
         model = Pharmacist
