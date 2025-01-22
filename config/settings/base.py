@@ -4,7 +4,8 @@ from datetime import timedelta
 
 
 SECRET_KEY = config('SECRET_KEY', default='unsafe-secret-key')
-env = config('ENVIRONMENT', default='development')
+env = config('ENVIRONMENT', default='production')
+
 if env == 'development':
     DEBUG = True
 else:
@@ -99,6 +100,27 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+if env == "production":
+    # Production settings (PostgreSQL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv("POSTGRES_DB", "railway"),
+            'USER': os.getenv("POSTGRES_USER", "postgres"),
+            'PASSWORD': os.getenv("POSTGRES_PASSWORD", ""),
+            'HOST': os.getenv("POSTGRES_HOST", "localhost"),
+            'PORT': os.getenv("POSTGRES_PORT", "5432"),
+        }
+    }
+else:
+    # Development settings (SQLite)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
