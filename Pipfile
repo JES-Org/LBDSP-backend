@@ -9,6 +9,10 @@ djangorestframework = "*"
 python-decouple = "*"
 pillow = "*"
 djangorestframework-simplejwt = "*"
+django-cors-headers = "*"
+gunicorn = "*"
+whitenoise = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 black = "*"

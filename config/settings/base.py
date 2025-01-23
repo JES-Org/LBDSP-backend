@@ -1,10 +1,17 @@
 # base.py
 from decouple import config
+import os
 from datetime import timedelta
 
 
 SECRET_KEY = config('SECRET_KEY', default='unsafe-secret-key')
-DEBUG = config('DEBUG', cast=bool, default=False)
+env = config('ENVIRONMENT', default='production')
+
+if env == 'development':
+    DEBUG = True
+else:
+    DEBUG = False
+
 
 from pathlib import Path
 
@@ -15,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
@@ -36,8 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
       
     #third party
-        'corsheaders',
-
+    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -49,9 +55,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-        'corsheaders.middleware.CorsMiddleware',
-
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -96,6 +102,27 @@ DATABASES = {
     }
 }
 
+if env == "production":
+    # Production settings (PostgreSQL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv("PGDATABASE", ""),
+            'USER': os.getenv("PGUSER", ""),
+            'PASSWORD': os.getenv("PGPASSWORD", ""),
+            'HOST': os.getenv("PGHOST", ""),
+            'PORT': os.getenv("PGPORT", ""),
+        }
+    }
+else:
+    # Development settings (SQLite)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -125,7 +152,13 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Frontend origin
+    "http://localhost:5173",
+    "https://fetanfews.up.railway.app",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "https://fetanfews.up.railway.app",
 ]
 
 # Internationalization
