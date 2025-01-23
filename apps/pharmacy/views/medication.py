@@ -177,3 +177,27 @@ class CategoryAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
+    def put(self, request, *args, **kwargs):
+        try:
+            category_id = kwargs.get('pk')  # Get the category ID from the URL
+            category = Category.objects.get(pk=category_id)
+        except Category.DoesNotExist:
+            return Response({"error": "Category not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CategorySerializer(category, data=request.data, partial=True)  # Allow partial updates
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            category_id = kwargs.get('pk')  # Get the category ID from the URL
+            category = Category.objects.get(pk=category_id)
+        except Category.DoesNotExist:
+            return Response({"error": "Category not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        category.delete()
+        return Response({"message": "Category deleted successfully."}, status=status.HTTP_204_NO_CONTENT)    

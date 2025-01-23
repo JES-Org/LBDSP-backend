@@ -15,4 +15,6 @@ urlpatterns = [
     path('medications/<int:pk>/', MedicationDetailAPIView.as_view(), name='medication-detail'),
     path('medications/search/', MedicationSearchAPIView.as_view(), name='medication-search'),
     path('categories/', CategoryAPIView.as_view(), name='category-list-create'),
+    path('categories/<int:pk>/', CategoryAPIView.as_view(), name='category-edit-delete'),
+
 ]
