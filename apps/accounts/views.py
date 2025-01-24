@@ -26,20 +26,29 @@ class CustomUserAPIView(APIView):
         serializer = CustomUserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
-        serializer = CustomUserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class CustomUserDetailAPIView(APIView):
+    permission_classes = [AllowAny]
 
-    def delete(self, request, pk=None, *args, **kwargs):
+    def get(self, request, pk, *args, **kwargs):
         try:
             user = CustomUser.objects.get(pk=pk)
-            user.delete()
-            return Response({"detail": "User deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            serializer = CustomUserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except CustomUser.DoesNotExist:
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, pk, *args, **kwargs):
+        user = CustomUser.objects.get(pk=pk)
+        serializer = CustomUserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, *args, **kwargs):
+        user = CustomUser.objects.get(pk=pk)
+        user.delete()
+        return Response({"detail": "User deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 class RegistrationAPIView(APIView):
     permission_classes = [AllowAny]
