@@ -38,3 +38,6 @@ class SubscriptionAPIView(APIView):
             return Response({"message": "Unsubscribed successfully."}, status=status.HTTP_204_NO_CONTENT)
         except Subscription.DoesNotExist:
             return Response({"error": "You are not subscribed to this pharmacy."}, status=status.HTTP_404_NOT_FOUND)
+
+class SubscribedPharmaciesAPIView(APIView):
+    permission_classes = 
