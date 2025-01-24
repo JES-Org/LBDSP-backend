@@ -152,6 +152,24 @@ class PharmacyMedicationDetailAPIView(APIView):
         medication.delete()
         return Response({"message": "Medication deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
+class PharmacyMedicationSearchAPIView(APIView):
+    def get(self, request, pharmacy_id, *args, **kwargs):
+        query = request.query_params.get("query", None)
+        if not query:
+            return Response({"error": "Query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            pharmacy = Pharmacy.objects.get(id=pharmacy_id)
+        except Pharmacy.DoesNotExist:
+            return Response({"error": "Pharmacy not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        medications = Medication.objects.filter(Q(name__icontains=query) | Q(category__name__icontains=query), pharmacy=pharmacy)
+        if not medications.exists():
+            return Response({"message": "No medications found matching the query"}, status=status.HTTP_200_OK)
+        
+        serializer = MedicationSerializer(medications, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class CategoryMedicationsAPIView(APIView):
     def get(self, request, category_id, *args, **kwargs):
         medications = Medication.objects.filter(category=category_id)
