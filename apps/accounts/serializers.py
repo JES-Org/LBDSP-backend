@@ -15,6 +15,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['email', 'password', 'phone_number','first_name', 'last_name']
+    def create(self, validated_data):
+        password = validated_data.pop('password') 
+        user = CustomUser.objects.create_user(password=password, **validated_data)
+        return user   
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate

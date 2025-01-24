@@ -2,7 +2,7 @@ from django.urls import path
 
 from .views.pharmacy import PharmacyAPIView, PharmacyDetailAPIView, PharmacySearchAPIView, NearbyPharmacyAPIView, PharmacyRegistrationView
 from .views.medication import CategoryAPIView, MedicationDetailAPIView, MedicationAPIView, PharmacyMedicationsAPIView, PharmacyMedicationDetailAPIView, MedicationSearchAPIView
-
+from .views.pharmacist import PharmacistDetailAPIView,PharmacistListCreateAPIView 
 urlpatterns = [
     path('pharmacies/', PharmacyAPIView.as_view(), name='pharmacy-list-create'),
     path('pharmacies/<int:pk>/', PharmacyDetailAPIView.as_view(), name='pharmacy-detail'),
@@ -17,5 +17,8 @@ urlpatterns = [
     path('medications/search/', MedicationSearchAPIView.as_view(), name='medication-search'),
     path('categories/', CategoryAPIView.as_view(), name='category-list-create'),
     path('categories/<int:pk>/', CategoryAPIView.as_view(), name='category-edit-delete'),
+
+    path('pharmacists/',PharmacistListCreateAPIView.as_view(),name='pharmacist-list-create'),
+    path('pharmacists/<int:pk>/', PharmacistDetailAPIView.as_view,name='pharmacist-delete-edit'),
 
 ]

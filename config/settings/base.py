@@ -86,7 +86,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -102,26 +102,26 @@ DATABASES = {
     }
 }
 
-if env == "production":
-    # Production settings (PostgreSQL)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv("PGDATABASE", ""),
-            'USER': os.getenv("PGUSER", ""),
-            'PASSWORD': os.getenv("PGPASSWORD", ""),
-            'HOST': os.getenv("PGHOST", ""),
-            'PORT': os.getenv("PGPORT", ""),
-        }
-    }
-else:
-    # Development settings (SQLite)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# if env == "production":
+#     # Production settings (PostgreSQL)
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.postgresql',
+#             'NAME': os.getenv("PGDATABASE", ""),
+#             'USER': os.getenv("PGUSER", ""),
+#             'PASSWORD': os.getenv("PGPASSWORD", ""),
+#             'HOST': os.getenv("PGHOST", ""),
+#             'PORT': os.getenv("PGPORT", ""),
+#         }
+#     }
+# else:
+#     # Development settings (SQLite)
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
+#     }
 
 
 # Password validation

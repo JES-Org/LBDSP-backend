@@ -18,5 +18,6 @@ class PharmacySerializer(serializers.ModelSerializer):
             'delivery_available',
             'latitude',
             'longitude',
+            'status',
         ]
         read_only_fields = ['is_verified']
