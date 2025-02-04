@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.contrib.auth import get_user_model
 
-from .serializers import RegistrationSerializer
+from .serializers import ChangePasswordSerializer, RegistrationSerializer
 
 User = get_user_model()
 
@@ -105,4 +105,14 @@ class LogoutView(APIView):
             token.blacklist()
             return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({'detail': 'Error logging out.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
+            return Response({'detail': 'Error logging out.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)   
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Password updated successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
