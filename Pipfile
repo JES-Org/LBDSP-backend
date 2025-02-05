@@ -13,6 +13,8 @@ django-cors-headers = "*"
 gunicorn = "*"
 whitenoise = "*"
 psycopg2-binary = "*"
+django-rest-swagger = "*"
+drf-yasg = "*"
 
 [dev-packages]
 black = "*"
