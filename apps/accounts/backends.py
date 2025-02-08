@@ -5,7 +5,6 @@ class CustomBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         if not username or not password:
             return None
-        print('user authenticting', username, password)
         UserModel = get_user_model()
 
         # Try to find user by email or phone_number
@@ -19,8 +18,7 @@ class CustomBackend(ModelBackend):
                     user = UserModel.objects.get(phone_number=username)
             except UserModel.DoesNotExist:
                 return None
-        print('user',user)
-        print('user authenticting', user.check_password(password))
+     
 
         if user and user.check_password(password):
 
