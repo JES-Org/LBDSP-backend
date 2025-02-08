@@ -14,7 +14,7 @@ urlpatterns = [
     path('pharmacies/<int:pharmacy_id>/medications/<int:medication_id>/', PharmacyMedicationDetailAPIView.as_view(), name='pharmacy-medication-detail'),
     path('pharmacies/nearby/', NearbyPharmacyAPIView.as_view(), name='nearby-pharmacies'),
     path('pharmacies/<int:pharmacy_id>/medications/search/', PharmacyMedicationSearchAPIView.as_view(), name='pharmacy-medication-search'),
-    path('pharmacies/subscribe/', SubscriptionAPIView.as_view(), name='subscribe'),
+    path('pharmacies/<int:pharmacy_id>/subscribe/', SubscriptionAPIView.as_view(), name='subscribe-create-delete'),
     path('pharmacies/subscriptions/', SubscriptionListAPIView.as_view(), name='subscription-list'),
     path('pharmacies/<int:pharmacy_id>/reviews/', ReviewAPIView.as_view(), name='review-list-create'),
     
