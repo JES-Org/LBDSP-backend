@@ -9,6 +9,7 @@ from apps.pharmacy.serializers.pharmacy import PharmacySerializer
 from apps.pharmacy.serializers.pharmacist import PharmacistSerializer
 from apps.pharmacy.models.pharmacy import Pharmacy
 from apps.pharmacy.models.pharmacist import Pharmacist
+from apps.pharmacy.signals import pharmacy_registered
 from apps.pharmacy.utils.geolocation import calculate_distance
 
 class PharmacyAPIView(APIView):
@@ -89,7 +90,8 @@ class PharmacyRegistrationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        pharmacist_data["pharmacy"] = pharmacy.id
+        pharmacist_data["pharmacy_id"] = pharmacy.id
+        pharmacist_data["user_id"] = request.user.id
 
         pharmacist_serializer = PharmacistSerializer(data=pharmacist_data)
         if pharmacist_serializer.is_valid():
@@ -98,7 +100,10 @@ class PharmacyRegistrationView(APIView):
             user = request.user
             if user.role != "pharmacist":
                 user.role = "pharmacist"
+                user.is_staff = True
                 user.save()
+            
+            pharmacy_registered.send(sender=self.__class__, pharmacy=pharmacy)
         else:
             pharmacy.delete()
             return Response(
@@ -110,7 +115,7 @@ class PharmacyRegistrationView(APIView):
             {
                 "message": "Pharmacy registered successfully.",
                 "pharmacy": pharmacy_serializer.data,
-                "pharmacist": pharmacist_serializer.data,
+                "pharmacist": pharmacist_serializer.data["user"],
             },
             status=status.HTTP_201_CREATED,
         )
