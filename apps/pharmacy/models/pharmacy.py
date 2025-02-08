@@ -12,6 +12,8 @@ class Pharmacy(models.Model):
     delivery_available = models.BooleanField(default=False)
     latitude = models.FloatField(default= 11.5742)
     longitude = models.FloatField(default=37.3614)
+    status = models.CharField(max_length=20, default='Pending')
+
   
     def __str__(self):
         return self.name
