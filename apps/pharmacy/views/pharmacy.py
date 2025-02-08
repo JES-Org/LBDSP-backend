@@ -27,6 +27,7 @@ class PharmacyAPIView(APIView):
             serializer.save()
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print("serilizer error",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class PharmacyDetailAPIView(APIView):
@@ -163,3 +164,18 @@ class PharmacyDashboardAPIView(APIView):
             return Response({"error": "Pharmacist not found"}, status=status.HTTP_404_NOT_FOUND)
         except Pharmacy.DoesNotExist:
             return Response({"error": "Pharmacy not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class PharmacyCountsAPIView(APIView):
+    def get(self, request):
+        print("calling PharmacyCountsAPIView")
+        total = Pharmacy.objects.count()
+        pending = Pharmacy.objects.filter(status="Pending").count()
+        rejected = Pharmacy.objects.filter(status="Rejected").count()
+        approved = Pharmacy.objects.filter(status="Approved").count()
+        return Response({
+                "total": total,
+                "pending": pending,
+                "rejected": rejected,
+                "approved": approved,
+            })
+
