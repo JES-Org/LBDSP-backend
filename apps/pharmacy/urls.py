@@ -3,6 +3,7 @@ from django.urls import path
 from .views.pharmacy import PharmacyAPIView, PharmacyDetailAPIView, PharmacySearchAPIView, NearbyPharmacyAPIView, PharmacyRegistrationView
 from .views.medication import CategoryAPIView, MedicationDetailAPIView, MedicationAPIView, PharmacyMedicationsAPIView, PharmacyMedicationDetailAPIView, MedicationSearchAPIView, PharmacyMedicationSearchAPIView
 from .views.subscription import SubscriptionAPIView, SubscriptionListAPIView
+from .views.review import ReviewAPIView
 
 urlpatterns = [
     path('pharmacies/', PharmacyAPIView.as_view(), name='pharmacy-list-create'),
@@ -15,6 +16,7 @@ urlpatterns = [
     path('pharmacies/<int:pharmacy_id>/medications/search/', PharmacyMedicationSearchAPIView.as_view(), name='pharmacy-medication-search'),
     path('pharmacies/subscribe/', SubscriptionAPIView.as_view(), name='subscribe'),
     path('pharmacies/subscriptions/', SubscriptionListAPIView.as_view(), name='subscription-list'),
+    path('pharmacies/<int:pharmacy_id>/reviews/', ReviewAPIView.as_view(), name='review-list-create'),
     
     path('medications/', MedicationAPIView.as_view(), name='medication-list-create'),
     path('medications/<int:pk>/', MedicationDetailAPIView.as_view(), name='medication-detail'),
