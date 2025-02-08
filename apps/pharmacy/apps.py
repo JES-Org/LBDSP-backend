@@ -5,5 +5,5 @@ class PharmacyConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.pharmacy"
 
-    # def ready(self):
-    #     import apps.pharmacy.signals
+    def ready(self):
+        import apps.pharmacy.signals
