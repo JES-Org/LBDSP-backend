@@ -15,14 +15,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['email', 'password', 'phone_number','first_name', 'last_name']
+    
     def create(self, validated_data):
-        password = validated_data.pop('password') 
-        user = CustomUser.objects.create_user(password=password, **validated_data)
-        return user   
-
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth import authenticate
-from rest_framework import serializers
+        password = validated_data.pop('password')
+        user = CustomUser(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = "username"
@@ -49,4 +48,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         return data
 
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
 
+    def validate(self, data):
+        user = self.context['request'].user
+        if not user.check_password(data['current_password']):
+            raise serializers.ValidationError({"current_password": "Incorrect password."})
+        return data
+
+    def save(self):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()

@@ -117,7 +117,7 @@ class PharmacyRegistrationView(APIView):
 
 class PharmacySearchAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        query = request.query_params.get('q', None)
+        query = request.query_params.get('query', None)
         if query:
             pharmacies = Pharmacy.objects.filter(name__icontains=query)
         else:
