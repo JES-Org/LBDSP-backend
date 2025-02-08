@@ -10,11 +10,7 @@ from apps.pharmacy.serializers.subscription import SubscriptionSerializer
 class SubscriptionAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        pharmacy_id = request.data.get("pharmacy")
-        if not pharmacy_id:
-            return Response({"error": "Pharmacy ID is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
+    def post(self, request, pharmacy_id, *args, **kwargs):
         try:
             pharmacy = Pharmacy.objects.get(id=pharmacy_id)
         except Pharmacy.DoesNotExist:
@@ -27,11 +23,7 @@ class SubscriptionAPIView(APIView):
         serializer = SubscriptionSerializer(subscription)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    def delete(self, request, *args, **kwargs):
-        pharmacy_id = request.data.get("pharmacy")
-        if not pharmacy_id:
-            return Response({"error": "Pharmacy ID is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
+    def delete(self, request, pharmacy_id, *args, **kwargs):
         try:
             subscription = Subscription.objects.get(user=request.user, pharmacy_id=pharmacy_id)
             subscription.delete()
