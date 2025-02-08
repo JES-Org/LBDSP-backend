@@ -18,10 +18,10 @@ class PharmacistListCreateAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
+      
         data = request.data
-        print("pharmacist data",data)
         user=None
-        user_id = data.get("user")
+        user_id = data.get("user_id")
 
         if user_id:
             user= get_object_or_404(CustomUser, id=user_id)
@@ -34,8 +34,8 @@ class PharmacistListCreateAPIView(APIView):
             user.is_staff=True
             user.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print(serializer.errors)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "Failed to create pharmacist", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PharmacistDetailAPIView(APIView):
@@ -56,5 +56,10 @@ class PharmacistDetailAPIView(APIView):
 
     def delete(self, request, pk):
         pharmacist = get_object_or_404(Pharmacist, pk=pk)
+        user=pharmacist.user
+        stored_user=get_object_or_404(CustomUser,pk=user.id)
+        stored_user.role="user"
+        stored_user.is_staff=False
+        stored_user.save()
         pharmacist.delete()
         return Response({"detail": "Pharmacist deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
