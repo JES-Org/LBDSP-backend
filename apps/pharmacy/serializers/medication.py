@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from ..models.medication import Medication, Category
+from ..models.pharmacy import Pharmacy
+from .pharmacy import PharmacySerializer
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,7 +12,9 @@ class CategorySerializer(serializers.ModelSerializer):
 class MedicationSerializer(serializers.ModelSerializer):
     pharmacy_name = serializers.ReadOnlyField(source='pharmacy.name')
     category_name = serializers.ReadOnlyField(source='category.name')
-
+    pharmacy_details = PharmacySerializer(source='pharmacy', read_only=True)
+    category_details = CategorySerializer(source='category', read_only=True)
+    
     class Meta:
         model = Medication
         fields = [
@@ -32,6 +36,8 @@ class MedicationSerializer(serializers.ModelSerializer):
             'usage_instructions', 
             'quantity_available', 
             'image',
+             'pharmacy_details',  
+            'category_details',
         ]
         read_only_fields = ['pharmacy_name', 'category_name', 'stock_status']
         

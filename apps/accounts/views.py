@@ -84,7 +84,6 @@ class RegistrationAPIView(APIView):
 class GetCurrentUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request,pk=None):
-        print("logout request")
        
         try:
             user=request.user
@@ -97,6 +96,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class LogoutView(APIView):
 
     permission_classes=(IsAuthenticated,)
+
     def post(self, request):
         try:
             refresh_token=request.data.get('refresh_token')
