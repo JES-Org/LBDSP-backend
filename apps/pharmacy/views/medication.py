@@ -86,12 +86,16 @@ class MedicationSearchAPIView(APIView):
         if not query:
             return Response({"error": "Query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        medications = Medication.objects.filter(Q(name__icontains=query) | Q(category__name__icontains=query))
-        print(medications)
-        if not medications.exists():
-            return Response({"message": "No medications found matching the query"}, status=status.HTTP_404_NOT_FOUND)
+        medications = Medication.objects.filter(Q(name__icontains=query) | Q(category__name__icontains=query)).select_related("pharmacy")
+         # Get distinct pharmacies from the filtered medications
+        pharmacy_ids = medications.values_list("pharmacy", flat=True).distinct()
+        pharmacies = Pharmacy.objects.filter(id__in=pharmacy_ids)
+        if not pharmacies.exists():
+            return Response({"message": "No pharmacies found with matching medications"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = MedicationSerializer(medications, many=True)
+     
+
+        serializer = PharmacySerializer(pharmacies, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -181,7 +185,8 @@ class PharmacyMedicationSearchAPIView(APIView):
         except Pharmacy.DoesNotExist:
             return Response({"error": "Pharmacy not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        medications = Medication.objects.filter(Q(name__icontains=query) | Q(category__name__icontains=query), pharmacy=pharmacy,stock_status=True)
+        medications = Medication.objects.filter(Q(name__icontains=query) | Q(category__name__icontains=query), 
+                                                pharmacy=pharmacy,stock_status=True).order_by('price')[:5]   # Sort by price and limit to 5 results
         if not medications.exists():
             return Response({"message": "No medications found matching the query"}, status=status.HTTP_200_OK)
         
