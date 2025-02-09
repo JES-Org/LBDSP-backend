@@ -125,26 +125,49 @@ class PharmacySearchAPIView(APIView):
 
         serializer = PharmacySerializer(pharmacies, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 class NearbyPharmacyAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        user_lat = float(request.query_params.get('latitude', None))
-        user_long = float(request.query_params.get('longitude', None))
-        radius = float(request.query_params.get('radius', 5))
+        user_lat = request.query_params.get('latitude',None)
+        user_long = request.query_params.get('longitude',None)
+        lower_limit = request.query_params.get('lower_limit',None)
+        upper_limit = request.query_params.get('upper_limit',None)
+        print("uper and lwer limit",user_lat,lower_limit)
+        # Validate latitude and longitude
         if not user_lat or not user_long:
-            return Response({"error": "Please provide lattitude and longitude"}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"error": "Please provide latitude and longitude"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_lat = float(user_lat)
+            user_long = float(user_long)
+        except ValueError:
+            return Response({"error": "Invalid latitude or longitude format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate limits
+        if lower_limit is not None and upper_limit is not None:
+            try:
+                lower_limit = float(lower_limit)
+                upper_limit = float(upper_limit)
+            except ValueError:
+                return Response({"error": "Invalid lower or upper limit format"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if lower_limit < 0 or upper_limit < lower_limit:
+                return Response({"error": "Invalid distance range"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Default to searching for pharmacies within 5 km if no limits are provided
+            lower_limit, upper_limit = 0, 5  
+
         pharmacies = Pharmacy.objects.all()
-        nearby_pharmacies = []
+        filtered_pharmacies = []
 
         for pharmacy in pharmacies:
             pharmacy_lat = pharmacy.latitude
             pharmacy_long = pharmacy.longitude
             distance = calculate_distance(user_lat, user_long, pharmacy_lat, pharmacy_long)
-            if distance <= radius:
-                nearby_pharmacies.append(pharmacy)
-        
-        serializer = PharmacySerializer(nearby_pharmacies, many=True)
+
+            if lower_limit <= distance < upper_limit:
+                filtered_pharmacies.append(pharmacy)
+
+        serializer = PharmacySerializer(filtered_pharmacies, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class PharmacyDashboardAPIView(APIView):
