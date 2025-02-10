@@ -131,7 +131,6 @@ class NearbyPharmacyAPIView(APIView):
         user_long = request.query_params.get('longitude',None)
         lower_limit = request.query_params.get('lower_limit',None)
         upper_limit = request.query_params.get('upper_limit',None)
-        print("uper and lwer limit",user_lat,lower_limit)
         # Validate latitude and longitude
         if not user_lat or not user_long:
             return Response({"error": "Please provide latitude and longitude"}, status=status.HTTP_400_BAD_REQUEST)
@@ -190,7 +189,6 @@ class PharmacyDashboardAPIView(APIView):
 
 class PharmacyCountsAPIView(APIView):
     def get(self, request):
-        print("calling PharmacyCountsAPIView")
         total = Pharmacy.objects.count()
         pending = Pharmacy.objects.filter(status="Pending").count()
         rejected = Pharmacy.objects.filter(status="Rejected").count()
