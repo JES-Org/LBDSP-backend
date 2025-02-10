@@ -10,8 +10,12 @@ from .views.medication import (CategoryAPIView, MedicationDetailAPIView, Medicat
                                  MedicationSearchAPIView, PharmacyMedicationSearchAPIView,SearchByCategoryAPIView
                                  )
 from .views.subscription import SubscriptionAPIView
-from .views.pharmacy import PharmacyAPIView, PharmacyDetailAPIView, PharmacySearchAPIView, NearbyPharmacyAPIView, PharmacyRegistrationView
-from .views.medication import CategoryAPIView, MedicationDetailAPIView, MedicationAPIView, PharmacyMedicationsAPIView, PharmacyMedicationDetailAPIView, MedicationSearchAPIView, PharmacyMedicationSearchAPIView
+from .views.pharmacy import (PharmacyAPIView, PharmacyDetailAPIView, 
+                             PharmacySearchAPIView, NearbyPharmacyAPIView, PharmacyRegistrationView)
+from .views.medication import (CategoryAPIView, MedicationDetailAPIView, MedicationAPIView, PharmacyMedicationsAPIView, 
+                               PharmacyMedicationDetailAPIView, MedicationSearchAPIView, 
+                               PharmacyMedicationSearchAPIView,MedicationCountsAPIView,
+                               MostSearchedMedicationsAPIView,PharmacyMostSearchedMedicationsAPIView)
 from .views.subscription import SubscriptionAPIView, SubscriptionListAPIView
 from .views.review import ReviewAPIView
 
@@ -33,11 +37,17 @@ urlpatterns = [
     path('medications/<int:pk>/', MedicationDetailAPIView.as_view(), name='medication-detail'),
     path('medications/search/', MedicationSearchAPIView.as_view(), name='medication-search'),
     path('categories/', CategoryAPIView.as_view(), name='category-list-create'),
+    path('medications_counts/', MedicationCountsAPIView.as_view(),name='medications_counts'),
+
     path('categories/<int:pk>/', CategoryAPIView.as_view(), name='category-edit-delete'),
 
     path('pharmacists/',PharmacistListCreateAPIView.as_view(),name='pharmacist-list-create'),
     path('pharmacists/<int:pk>/', PharmacistDetailAPIView.as_view(),name='pharmacist-delete-edit'),
     path('search_by_category/<int:category_id>/', SearchByCategoryAPIView.as_view(), name='search_by_category'),
     path('search_by_category/<int:category_id>/<int:pharmacy_id>/', SearchByCategoryAPIView.as_view(), name='search_by_category_pharmacy'),
+    path('most-searched-medications/', MostSearchedMedicationsAPIView.as_view(), name='most-searched-medications'),
+    path('pharmacy/most-searched-medications/', PharmacyMostSearchedMedicationsAPIView.as_view(), name='most-searched-medications'),
+
+
 
 ]
