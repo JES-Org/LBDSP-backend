@@ -46,6 +46,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError({"detail": "User account is disabled."})
 
         data = super().validate(attrs)
+        data['user']=CustomUserSerializer(user).data
         return data
 
 class ChangePasswordSerializer(serializers.Serializer):
