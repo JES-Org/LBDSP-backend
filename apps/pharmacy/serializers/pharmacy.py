@@ -21,3 +21,6 @@ class PharmacySerializer(serializers.ModelSerializer):
 
         ]
         read_only_fields = ['is_verified']
+class PharmacyReportSerializer(serializers.Serializer):
+    total_count = serializers.IntegerField()
+

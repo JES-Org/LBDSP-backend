@@ -11,7 +11,9 @@ from .views.medication import (CategoryAPIView, MedicationDetailAPIView, Medicat
                                  )
 from .views.subscription import SubscriptionAPIView
 from .views.pharmacy import (PharmacyAPIView, PharmacyDetailAPIView, 
-                             PharmacySearchAPIView, NearbyPharmacyAPIView, PharmacyRegistrationView)
+                             PharmacySearchAPIView, NearbyPharmacyAPIView, 
+                             PharmacyStatusReportAPIView,
+                             PharmacyRegistrationView)
 from .views.medication import (CategoryAPIView, MedicationDetailAPIView, MedicationAPIView, PharmacyMedicationsAPIView, 
                                PharmacyMedicationDetailAPIView, MedicationSearchAPIView, 
                                PharmacyMedicationSearchAPIView,MedicationCountsAPIView,
@@ -32,7 +34,8 @@ urlpatterns = [
     path('pharmacies/<int:pharmacy_id>/subscribe/', SubscriptionAPIView.as_view(), name='subscribe-create-delete'),
     path('pharmacies/subscriptions/', SubscriptionListAPIView.as_view(), name='subscription-list'),
     path('pharmacies/<int:pharmacy_id>/reviews/', ReviewAPIView.as_view(), name='review-list-create'),
-    
+    path('pharmacies/status-report/', PharmacyStatusReportAPIView.as_view(), name='pharmacy-status-report-create'),
+
     path('medications/', MedicationAPIView.as_view(), name='medication-list-create'),
     path('medications/<int:pk>/', MedicationDetailAPIView.as_view(), name='medication-detail'),
     path('medications/search/', MedicationSearchAPIView.as_view(), name='medication-search'),

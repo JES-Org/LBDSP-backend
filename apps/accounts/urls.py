@@ -3,7 +3,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from django.urls import path, include
 
-from .views import ChangePasswordView, RegistrationAPIView, CustomUserAPIView, CustomUserDetailAPIView, GetCurrentUserAPIView,LogoutView,CustomTokenObtainPairView
+from .views import (ChangePasswordView, RegistrationAPIView, 
+                    CustomUserAPIView, CustomUserDetailAPIView, 
+                    GetCurrentUserAPIView,LogoutView,CustomTokenObtainPairView,
+                    UserRoleReportAPIView,RecentlyRegisteredUsersAPIView,
+                    ActiveInactiveUsersReportAPIView
+                    )
 
 urlpatterns = [
     path('register/', RegistrationAPIView.as_view(), name='register'),
@@ -14,4 +19,8 @@ urlpatterns = [
     path('current_user/', GetCurrentUserAPIView.as_view(), name='current_user'),
     path('logout/',LogoutView.as_view(),name="logout"),
     path('password_change/', ChangePasswordView.as_view(), name='password_change'),
+    path('user-role-report/', UserRoleReportAPIView.as_view(), name='user_role_report'),
+    path('recently-registered-users/', RecentlyRegisteredUsersAPIView.as_view(), name='recently_registered_users'),
+    path('active-inactive-users-report/', ActiveInactiveUsersReportAPIView.as_view(), name='active_inactive_users_report'),
+
 ]

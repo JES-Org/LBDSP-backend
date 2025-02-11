@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
-
+from django.db.models import Count
 from apps.pharmacy.models.medication import Medication
 from apps.pharmacy.serializers.pharmacy import PharmacySerializer
 from apps.pharmacy.serializers.pharmacist import PharmacistSerializer
@@ -200,3 +200,21 @@ class PharmacyCountsAPIView(APIView):
                 "approved": approved,
             })
 
+class PharmacyStatusReportAPIView(APIView):
+    def get(self, request):
+        # Get total number of pharmacies
+        total_count = Pharmacy.objects.count()
+        # Get verified vs unverified pharmacies count
+        verification_data = Pharmacy.objects.values('is_verified').annotate(total_count=Count('id'))
+        
+        # Convert boolean field to human-readable labels
+        verification_report = [
+            {"status": "Verified" if entry["is_verified"] else "Unverified", "total_count": entry["total_count"]}
+            for entry in verification_data
+        ]
+
+        # Return combined response
+        return Response({
+            "total_pharmacies": total_count,
+            "verification_report": verification_report
+        }, status=status.HTTP_200_OK)

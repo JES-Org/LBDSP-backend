@@ -13,6 +13,10 @@ class Pharmacy(models.Model):
     latitude = models.FloatField(default= 11.5742)
     longitude = models.FloatField(default=37.3614)
     status = models.CharField(max_length=20, default='Pending')
+    def save(self, *args, **kwargs):
+        # Automatically update is_verified based on status
+        self.is_verified = self.status == "Approved"
+        super().save(*args, **kwargs)
 
   
     def __str__(self):

@@ -3,9 +3,12 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Count
+from django.db.models.functions import TruncDate
 
 from django.contrib.auth import get_user_model
-
+from django.utils import timezone
+from datetime import timedelta
 from .serializers import ChangePasswordSerializer, RegistrationSerializer
 
 User = get_user_model()
@@ -15,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework import status
 from .models import CustomUser
-from .serializers import CustomUserSerializer,CustomTokenObtainPairSerializer
+from .serializers import CustomUserSerializer,CustomTokenObtainPairSerializer,UserReportSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 class CustomUserAPIView(APIView):
@@ -117,3 +120,40 @@ class ChangePasswordView(APIView):
             serializer.save()
             return Response({"message": "Password updated successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class UserRoleReportAPIView(APIView):
+    def get(self, request):
+        data = CustomUser.objects.values('role').annotate(total_count=Count('id'))
+        serializer = UserReportSerializer(data, many=True)
+
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
+class RecentlyRegisteredUsersAPIView(APIView):
+    def get(self, request):
+        last_seven_days = timezone.now() - timedelta(days=7)
+
+        # Group by date and count users
+        users_data = (
+            CustomUser.objects
+            .filter(date_joined__gte=last_seven_days)
+            .annotate(date=TruncDate('date_joined'))
+            .values('date')
+            .annotate(total_count=Count('id'))
+            .order_by('date')
+        )
+
+        # Convert the date format to string (YYYY-MM-DD)
+        formatted_data = [
+            {'date_joined': entry['date'].strftime('%Y-%m-%d'), 'total_count': entry['total_count']}
+            for entry in users_data
+        ]
+
+        return Response(formatted_data, status=status.HTTP_200_OK)  
+class ActiveInactiveUsersReportAPIView(APIView):
+    def get(self, request):
+        data = CustomUser.objects.values('is_active').annotate(total_count=Count('id'))
+        for entry in data:
+            entry['is_active'] = 'Active' if entry['is_active'] else 'Inactive'
+
+        return Response(data,status=status.HTTP_200_OK) 
+     

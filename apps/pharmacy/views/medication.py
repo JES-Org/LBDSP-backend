@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
+from datetime import date
 
 from django.db.models import Q
 from apps.pharmacy.models.pharmacy import Pharmacy
@@ -381,3 +382,22 @@ class PharmacyMostSearchedMedicationsAPIView(APIView):
             data['search_count'] = filtered_medications[i]['search_count']
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+class TotalMedicationsAvailableAPIView(APIView):
+    def get(self, request):
+        # Get the total count of medications across pharmacies
+        total_medications = Medication.objects.filter(quantity_available__gt=0).count()
+
+        # Return the result as JSON
+        return Response({"total_medications": total_medications})    
+class OutOfStockMedicationsAPIView(APIView):
+    def get(self, request):
+        out_of_stock_medications = Medication.objects.filter(quantity_available=0)
+        data = out_of_stock_medications.values('name', 'category__name', 'description')
+
+        return Response(data)
+class ExpiredMedicationsAPIView(APIView):
+    def get(self, request):
+        expired_medications = Medication.objects.filter(expiry_date__lt=date.today())
+        data = expired_medications.values('name', 'category__name', 'expiry_date', 'description')
+
+        return Response(data)    
