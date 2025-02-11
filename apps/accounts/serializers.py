@@ -63,3 +63,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = self.context['request'].user
         user.set_password(self.validated_data['new_password'])
         user.save()
+
+class UserReportSerializer(serializers.Serializer):
+    role = serializers.CharField()
+    total_count = serializers.IntegerField()        
