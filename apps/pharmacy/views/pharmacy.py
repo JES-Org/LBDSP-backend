@@ -21,7 +21,6 @@ class PharmacyAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, *args, **kwargs):
-        print("Incoming Data:", request.data)
         serializer = PharmacySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -45,6 +44,7 @@ class PharmacyDetailAPIView(APIView):
         serializer = PharmacySerializer(pharmacy)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
+        
     
     def put(self, request, pk, *args, **kwargs):
         pharmacy = self.get_object(pk=pk)
