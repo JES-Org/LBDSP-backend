@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from apps.pharmacy.models.pharmacist import Pharmacist
 from apps.pharmacy.models.pharmacy import Pharmacy
 from apps.accounts.models import CustomUser
-from apps.pharmacy.serializers.pharmacist import PharmacistSerializer
+from apps.pharmacy.serializers.pharmacist import PharmacistSerializer,PharmacistUpdateSerializer
 
 class PharmacistListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -63,3 +63,28 @@ class PharmacistDetailAPIView(APIView):
         stored_user.save()
         pharmacist.delete()
         return Response({"detail": "Pharmacist deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    
+class PharmacistGetUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Retrieve the currently logged-in pharmacist details."""
+        pharmacist = get_object_or_404(Pharmacist, user=request.user)
+        serializer = PharmacistUpdateSerializer(pharmacist)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+
+    def put(self, request):
+        """Update the currently logged-in pharmacist details, including pharmacy details."""
+        pharmacist = get_object_or_404(Pharmacist, user=request.user)
+        serializer = PharmacistUpdateSerializer(pharmacist, data=request.data, partial=True)
+        print('incomming data',request.data)
+
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        print('serilizer errors',serializer.errors)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+            
