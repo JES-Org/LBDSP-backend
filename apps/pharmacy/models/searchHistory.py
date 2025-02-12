@@ -3,12 +3,12 @@ from .medication import Medication
 from django.db import models
 
 class SearchHistory(models.Model):
-    medication = models.ForeignKey(Medication, on_delete=models.CASCADE)
+    medication_name = models.CharField(max_length=255,blank=True, default="unknown")
     search_count = models.IntegerField(default=0)
     last_searched = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.medication.name} searched {self.search_count} times"
+        return f"{self.medication_name} searched {self.search_count} times"
 
     def increment_search_count(self):
         self.search_count += 1
