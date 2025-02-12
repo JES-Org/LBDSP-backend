@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from datetime import date
+from django.db.models import Count
+
 
 from django.db.models import Q
 from apps.pharmacy.models.pharmacy import Pharmacy
@@ -13,9 +15,9 @@ from apps.pharmacy.models.medication import Category, Medication
 from django.shortcuts import get_object_or_404
 from apps.pharmacy.serializers.pharmacy import PharmacySerializer
 from django.utils.timezone import now
+
 class MedicationAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    
+    permission_classes = [permissions.IsAuthenticated] 
     def get(self, request, *args, **kwargs):
         user=request.user
         if user.is_superuser:
@@ -29,27 +31,27 @@ class MedicationAPIView(APIView):
                     {"detail": "User is not associated with a pharmacy."},
                     status=status.HTTP_403_FORBIDDEN
                 )
-
-        serializer = MedicationSerializer(medications, many=True)
-        
+        serializer = MedicationSerializer(medications, many=True) 
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, *args, **kwargs):
-        user=request.user
+        user = request.user
         try:
-            pharmacist=user.pharmacist_profile
+            pharmacist = user.pharmacist_profile
         except Pharmacist.DoesNotExist:
-             return Response(
+            return Response(
                 {"detail": "User is not associated with a pharmacy."},
                 status=status.HTTP_403_FORBIDDEN
             )
-        pharmacy=pharmacist.pharmacy
-        data=request.data.copy()
+        pharmacy = pharmacist.pharmacy
+        data = request.data.copy()
         data['pharmacy'] = pharmacy.id
+        # Generate batch number using name, manufacturer, and expiry date
+        batch_number = f"{data['name'][:3].upper()}-{pharmacy.name[:3]}"
+        data['batch_number'] = batch_number
         serializer = MedicationSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -59,7 +61,6 @@ class MedicationDetailAPIView(APIView):
             return Medication.objects.get(pk=pk)
         except Medication.DoesNotExist:
             return None
-    
     def get(self, request, pk, *args, **kwargs):
         medication = self.get_object(pk)
         if not medication:
@@ -103,7 +104,9 @@ class MedicationSearchAPIView(APIView):
         if not medications.exists():
             return Response({"message": "No medications found with matching query"}, status=status.HTTP_404_NOT_FOUND)
         for medication in medications:
-            search_history, created = SearchHistory.objects.get_or_create(medication=medication)
+            search_history, created = SearchHistory.objects.get_or_create(
+                medication_name=medication.name,
+                )
             search_history.increment_search_count()
         
          # Get distinct pharmacies from the filtered medications
@@ -111,8 +114,6 @@ class MedicationSearchAPIView(APIView):
         pharmacies = Pharmacy.objects.filter(id__in=pharmacy_ids)
         if not pharmacies.exists():
             return Response({"message": "No pharmacies found with matching medications"}, status=status.HTTP_404_NOT_FOUND)
-
-     
 
         serializer = PharmacySerializer(pharmacies, many=True)
 
@@ -209,7 +210,7 @@ class PharmacyMedicationSearchAPIView(APIView):
         if not medications.exists():
             return Response({"message": "No medications found matching the query"}, status=status.HTTP_200_OK)
         for medication in medications:
-            search_history, created = SearchHistory.objects.get_or_create(medication=medication)
+            search_history, created = SearchHistory.objects.get_or_create(medication_name=medication.name)
             search_history.increment_search_count()
         
         serializer = MedicationSerializer(medications, many=True)
@@ -223,10 +224,12 @@ class CategoryMedicationsAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CategoryAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
+        # Filter categories that have associated medications
         categories = Category.objects.all()
+
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -266,32 +269,32 @@ class CategoryAPIView(APIView):
         return Response({"message": "Category deleted successfully."}, status=status.HTTP_204_NO_CONTENT)    
 
 
+class BrwoseByCategoryView(APIView):
+    permission_classes = [permissions.AllowAny]
+    def get(self, request, *args, **kwargs):
+        # Filter categories that have associated medications
+        categories_with_medications = Category.objects.annotate(
+            medication_count=Count('medication')
+        ).filter(medication_count__gt=0)  # Only categories with medications
+        serializer = CategorySerializer(categories_with_medications, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
 class SearchByCategoryAPIView(APIView):
-    """
-    API View to search medications and pharmacies by category.
-    
-    - If only `category_id` is provided: Return **unique pharmacies** that sell medications in that category.
-    - If `category_id` and `pharmacy_id` are provided: Return **medications** in that category from the specified pharmacy.
-    """
-
+  
     def get(self, request, category_id, pharmacy_id=None):
         # Validate category
         category = get_object_or_404(Category, id=category_id)
-        if Category.DoesNotExist:
-            return Response({"message": "Category not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-
         # If a pharmacy is provided, return medications under that category for the specific pharmacy
         if pharmacy_id:
+
             pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
             medications = Medication.objects.filter(category=category, pharmacy=pharmacy)
             if not medications.exists():
                 return Response({"message": "No medications found in this category for the specified pharmacy."}, status=status.HTTP_404_NOT_FOUND)
             for medication in medications:
-                search_history, created = SearchHistory.objects.get_or_create(medication=medication)
+                search_history, created = SearchHistory.objects.get_or_create(medication_name=medication.name)
                 search_history.increment_search_count()
             
 
@@ -305,13 +308,14 @@ class SearchByCategoryAPIView(APIView):
 
         # If only category_id is provided, return unique pharmacies that sell medications in this category
         medications = Medication.objects.filter(category=category).select_related('pharmacy')
+
         if not medications.exists():
                 return Response({"message": "No medications Found"}, status=status.HTTP_404_NOT_FOUND)
         unique_pharmacies = {}
 
         # Serialize unique pharmacies
         for med in medications:
-            search_history, created = SearchHistory.objects.get_or_create(medication=med)
+            search_history, created = SearchHistory.objects.get_or_create(medication_name=med.name)
             search_history.increment_search_count()
             if med.pharmacy.id not in unique_pharmacies:
                 unique_pharmacies[med.pharmacy.id] = PharmacySerializer(med.pharmacy).data
@@ -330,28 +334,31 @@ class MedicationCountsAPIView(APIView):
             return Response(
                     {"detail": "User is not associated with a pharmacy."},
                     status=status.HTTP_403_FORBIDDEN
-                )
-
-          
-        total = medications.count()
-        inStock =medications.filter(stock_status=True).count()
-        outOfStock = medications.filter(stock_status=False).count()
-        expired=medications.filter(expiry_date__lt=now().date()).count()
+                )    
+        total = medications.values('name').distinct().count()
+        inStock =medications.filter(stock_status=True).values('name').distinct().count()
+        outOfStock = medications.filter(stock_status=False).values('name').distinct().count()
+        expired=medications.filter(expiry_date__lt=now().date()).values('name').distinct().count()
         return Response({
                 "total": total,
                 "inStock": inStock,
                 "outOfStock": outOfStock,
                 "expired":expired,
             })
+    
 class MostSearchedMedicationsAPIView(APIView):
     def get(self, request, *args, **kwargs):
         # Get the top 5 most searched medications
         most_searched = SearchHistory.get_most_searched(limit=5)
-
-        # Prepare medication data to be returned
-        medications = [entry.medication for entry in most_searched]
+        # Prepare medication data to be returned by fetching the corresponding medications
+        medications = []
+        for entry in most_searched:
+            # Fetch the medication based on the medication name
+            medication = Medication.objects.filter(name=entry.medication_name).first()
+            if medication:
+                medications.append(medication)
+        # Serialize the medication data
         serializer = MedicationSerializer(medications, many=True)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
         
@@ -364,40 +371,37 @@ class PharmacyMostSearchedMedicationsAPIView(APIView):
         # Fetch the most searched medications
         most_searched = SearchHistory.get_most_searched(limit=10)
         # Prepare medications and their search counts
-        medications = [
-            {
-                'medication': entry.medication,
-                'search_count': entry.search_count
-            }
-            for entry in most_searched
-        ]
-        # Filter medications based on the pharmacist's pharmacy
-        filtered_medications = [
-            med for med in medications if med['medication'].pharmacy == pharmacist.pharmacy
-        ] 
-        if not filtered_medications:
-            return Response({"message": "No medications found for the most searched medications."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = MedicationSerializer([med['medication'] for med in filtered_medications], many=True)
+        medications = []
+        for entry in most_searched:
+            medication = Medication.objects.filter(name=entry.medication_name, pharmacy=pharmacist.pharmacy).first()
+            if medication:
+                medications.append({
+                    'medication': medication,
+                    'search_count': entry.search_count
+                })
+        if not medications:
+            return Response({"message": "No medications found for the most searched medications."}, status=status.HTTP_404_NOT_FOUND)        
+        serializer = MedicationSerializer([med['medication'] for med in medications], many=True)
         for i, data in enumerate(serializer.data):
-            data['search_count'] = filtered_medications[i]['search_count']
+            data['search_count'] = medications[i]['search_count']
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 class TotalMedicationsAvailableAPIView(APIView):
     def get(self, request):
         # Get the total count of medications across pharmacies
-        total_medications = Medication.objects.filter(quantity_available__gt=0).count()
+        total_medications = Medication.objects.filter(quantity_available__gt=0).values('name').distinct().count()
 
         # Return the result as JSON
         return Response({"total_medications": total_medications})    
 class OutOfStockMedicationsAPIView(APIView):
     def get(self, request):
         out_of_stock_medications = Medication.objects.filter(quantity_available=0)
-        data = out_of_stock_medications.values('name', 'category__name', 'description')
+        data = out_of_stock_medications.values('name', 'category__name', 'description').distinct()
 
         return Response(data)
 class ExpiredMedicationsAPIView(APIView):
     def get(self, request):
-        expired_medications = Medication.objects.filter(expiry_date__lt=date.today())
+        expired_medications = Medication.objects.filter(expiry_date__lt=date.today()).values('name').distinct()
         data = expired_medications.values('name', 'category__name', 'expiry_date', 'description')
 
         return Response(data)    
