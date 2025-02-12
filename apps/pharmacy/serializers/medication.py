@@ -38,6 +38,7 @@ class MedicationSerializer(serializers.ModelSerializer):
             'image',
              'pharmacy_details',  
             'category_details',
+            # "batch_number",
         ]
-        read_only_fields = ['pharmacy_name', 'category_name', 'stock_status']
+        read_only_fields = ['pharmacy_name', 'category_name', 'stock_status',]
         
