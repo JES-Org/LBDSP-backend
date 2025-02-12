@@ -14,10 +14,11 @@ from .views.pharmacy import (PharmacyAPIView, PharmacyDetailAPIView,
                              PharmacySearchAPIView, NearbyPharmacyAPIView, 
                              PharmacyStatusReportAPIView,
                              PharmacyRegistrationView)
-from .views.medication import (CategoryAPIView, MedicationDetailAPIView, MedicationAPIView, PharmacyMedicationsAPIView, 
+from .views.medication import (CategoryAPIView, MedicationDetailAPIView, MedicationAPIView, 
+                               PharmacyMedicationsAPIView, 
                                PharmacyMedicationDetailAPIView, MedicationSearchAPIView, 
                                PharmacyMedicationSearchAPIView,MedicationCountsAPIView,
-                               MostSearchedMedicationsAPIView,PharmacyMostSearchedMedicationsAPIView)
+                               MostSearchedMedicationsAPIView,PharmacyMostSearchedMedicationsAPIView,BrwoseByCategoryView)
 from .views.subscription import SubscriptionAPIView, SubscriptionListAPIView
 from .views.review import ReviewAPIView
 
@@ -35,18 +36,15 @@ urlpatterns = [
     path('pharmacies/subscriptions/', SubscriptionListAPIView.as_view(), name='subscription-list'),
     path('pharmacies/<int:pharmacy_id>/reviews/', ReviewAPIView.as_view(), name='review-list-create'),
     path('pharmacies/status-report/', PharmacyStatusReportAPIView.as_view(), name='pharmacy-status-report-create'),
-
     path('medications/', MedicationAPIView.as_view(), name='medication-list-create'),
     path('medications/<int:pk>/', MedicationDetailAPIView.as_view(), name='medication-detail'),
     path('medications/search/', MedicationSearchAPIView.as_view(), name='medication-search'),
-    path('categories/', CategoryAPIView.as_view(), name='category-list-create'),
     path('medications_counts/', MedicationCountsAPIView.as_view(),name='medications_counts'),
-
+    path('categories/', CategoryAPIView.as_view(), name='category-list-create'),
+    path('brwose_by_categories/', BrwoseByCategoryView.as_view(), name='brwose_by_categories'),
     path('categories/<int:pk>/', CategoryAPIView.as_view(), name='category-edit-delete'),
-
     path('pharmacists/',PharmacistListCreateAPIView.as_view(),name='pharmacist-list-create'),
     path('pharmacist/get_or_update/', PharmacistGetUpdateAPIView.as_view(), name='pharmacist-get-update'),
-
     path('pharmacists/<int:pk>/', PharmacistDetailAPIView.as_view(),name='pharmacist-delete-edit'),
     path('search_by_category/<int:category_id>/', SearchByCategoryAPIView.as_view(), name='search_by_category'),
     path('search_by_category/<int:category_id>/<int:pharmacy_id>/', SearchByCategoryAPIView.as_view(), name='search_by_category_pharmacy'),
