@@ -12,8 +12,8 @@ from .views.medication import (CategoryAPIView, MedicationDetailAPIView, Medicat
 from .views.subscription import SubscriptionAPIView
 from .views.pharmacy import (PharmacyAPIView, PharmacyDetailAPIView, 
                              PharmacySearchAPIView, NearbyPharmacyAPIView, 
-                             PharmacyStatusReportAPIView,
-                             PharmacyRegistrationView)
+                             PharmacyStatusReportAPIView,AllPharmacistListAPIView,
+                             PharmacyRegistrationView,PharmaciesWithoutPharmacistsAPIView)
 from .views.medication import (CategoryAPIView, MedicationDetailAPIView, MedicationAPIView, 
                                PharmacyMedicationsAPIView, 
                                PharmacyMedicationDetailAPIView, MedicationSearchAPIView, 
@@ -21,9 +21,13 @@ from .views.medication import (CategoryAPIView, MedicationDetailAPIView, Medicat
                                MostSearchedMedicationsAPIView,PharmacyMostSearchedMedicationsAPIView,BrwoseByCategoryView)
 from .views.subscription import SubscriptionAPIView, SubscriptionListAPIView
 from .views.review import ReviewAPIView
+from .views.notification import NotificationListView,MarkNotificationAsReadView
 
 urlpatterns = [
     path('pharmacies/', PharmacyAPIView.as_view(), name='pharmacy-list-create'),
+    path('pharmacies/all/', AllPharmacistListAPIView.as_view(), name='pharmacy-list'),
+
+    path('pharmacies-without-pharmacists/', PharmaciesWithoutPharmacistsAPIView.as_view(), name='pharmacy-without-pharmacist'),
     path('pharmacies/<int:pk>/', PharmacyDetailAPIView.as_view(), name='pharmacy-detail'),
     path('pharmacies/register/', PharmacyRegistrationView.as_view(), name='pharmacy-register'),
     path('pharmacies/search/', PharmacySearchAPIView.as_view(), name='pharmacy-search'),
@@ -50,6 +54,8 @@ urlpatterns = [
     path('search_by_category/<int:category_id>/<int:pharmacy_id>/', SearchByCategoryAPIView.as_view(), name='search_by_category_pharmacy'),
     path('most-searched-medications/', MostSearchedMedicationsAPIView.as_view(), name='most-searched-medications'),
     path('pharmacy/most-searched-medications/', PharmacyMostSearchedMedicationsAPIView.as_view(), name='most-searched-medications'),
+    path('notifications/', NotificationListView.as_view(), name='notification-list'),
+    path('notifications/read/<int:notification_id>/', MarkNotificationAsReadView.as_view(), name='mark-notification-read'),
 
 
 

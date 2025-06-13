@@ -10,12 +10,24 @@ from apps.pharmacy.serializers.pharmacist import PharmacistSerializer
 from apps.pharmacy.models.pharmacy import Pharmacy
 from apps.pharmacy.models.pharmacist import Pharmacist
 from apps.pharmacy.utils.geolocation import calculate_distance
+from django.db.models import Q
+from apps.pharmacy.signals import pharmacy_registered
+from django.core.mail import send_mail
+from django.conf import settings
+
+
+
+class AllPharmacistListAPIView(APIView):
+ def get(self, request, *args, **kwargs):
+        pharmacies = Pharmacy.objects.all()
+        serializer = PharmacySerializer(pharmacies, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)    
 
 class PharmacyAPIView(APIView):
     permission_classes = [permissions.AllowAny]
     
     def get(self, request, *args, **kwargs):
-        pharmacies = Pharmacy.objects.all()
+        pharmacies = Pharmacy.objects.filter(is_verified=True)
         serializer = PharmacySerializer(pharmacies, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -26,7 +38,6 @@ class PharmacyAPIView(APIView):
             serializer.save()
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print("serilizer error",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class PharmacyDetailAPIView(APIView):
@@ -48,11 +59,27 @@ class PharmacyDetailAPIView(APIView):
     
     def put(self, request, pk, *args, **kwargs):
         pharmacy = self.get_object(pk=pk)
+        
         if not pharmacy:
             return Response({"error": "Pharmacy not found"}, status=status.HTTP_404_NOT_FOUND)
         
+        
         serializer = PharmacySerializer(pharmacy, data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid() :
+            if not pharmacy.is_verified and serializer.validated_data['status'] == 'Approved':
+                pharmacist=Pharmacist.objects.filter(pharmacy=pharmacy).first()
+                user=pharmacist.user
+                user.role = 'pharmacist'
+                user.is_staff=True
+                user.save()
+                owner_email = user.email
+
+                send_mail(
+            "Pharmacy Registration Approved",
+            f"Dear {user.first_name},\n\nYour pharmacy '{pharmacy.name}'  has been Approved.",
+            settings.DEFAULT_FROM_EMAIL,
+            [owner_email]
+            )
             serializer.save()
 
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -60,9 +87,14 @@ class PharmacyDetailAPIView(APIView):
     
     def delete(self, request, pk, *args, **kwargs):
         pharmacy = self.get_object(pk)
+     
         if not pharmacy:
             return Response({"error": "Pharmacy not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+        pharmacist=Pharmacist.objects.filter(pharmacy=pharmacy).first()
+        user=pharmacist.user
+        user.role='user'
+        user.is_staff=False
+        user.save()
         pharmacy.delete()
 
         return Response({"message": "Pharmacy deleted"}, status=status.HTTP_204_NO_CONTENT)
@@ -71,49 +103,65 @@ class PharmacyRegistrationView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        pharmacy_data = request.data.get("pharmacy")
-        pharmacist_data = request.data.get("pharmacist")
+        # Get incoming data
+        data = request.data
+        # Check if the user already has a pharmacist profile
+        if hasattr(request.user, 'pharmacist_profile'):
+            return Response({'error': 'User already has a pharmacy.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not pharmacy_data or not pharmacist_data:
-            return Response(
-                {"error": "Both pharmacy and pharmacist data are required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # Validate Pharmacy data
+        pharmacy_data = {
+            'name': data.get('name'),
+            'address': data.get('address'),
+            'phone': data.get('phone'),
+            'email': data.get('email'),
+            'website': data.get('website'),
+            'operating_hours': data.get('operating_hours'),
+            'delivery_available': data.get('delivery_available') == 'true',  # Convert to boolean
+        }
 
+        # Check if a pharmacy with the same email exists
+        if Pharmacy.objects.filter(email=pharmacy_data['email']).exists():
+            return Response({'error': 'A pharmacy with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create Pharmacy
         pharmacy_serializer = PharmacySerializer(data=pharmacy_data)
         if pharmacy_serializer.is_valid():
-            pharmacy = pharmacy_serializer.save()
-        else:
-            return Response(
-                {"pharmacy_errors": pharmacy_serializer.errors},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            pharmacy = pharmacy_serializer.save()  # Save the pharmacy
 
-        pharmacist_data["pharmacy"] = pharmacy.id
-
-        pharmacist_serializer = PharmacistSerializer(data=pharmacist_data)
-        if pharmacist_serializer.is_valid():
-            pharmacist_serializer.save(user=request.user)
-
+            # Now create the Pharmacist
             user = request.user
-            if user.role != "pharmacist":
-                user.role = "pharmacist"
-                user.save()
-        else:
-            pharmacy.delete()
-            return Response(
-                {"pharmacist_errors": pharmacist_serializer.errors},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            # Save the user
+            pharmacist_data = {
+                'user_id': user.id,
+                'pharmacy_id': pharmacy.id,
+                'license_number': data.get('license_number'),
+                'license_image': data.get('license_image'),  
+            }
 
-        return Response(
-            {
-                "message": "Pharmacy registered successfully.",
-                "pharmacy": pharmacy_serializer.data,
-                "pharmacist": pharmacist_serializer.data,
-            },
-            status=status.HTTP_201_CREATED,
-        )
+            # Create Pharmacist
+            pharmacist_serializer = PharmacistSerializer(data=pharmacist_data)
+            if pharmacist_serializer.is_valid():
+                pharmacist_serializer.save()  # Save pharmacist
+
+                # Set user role to 'pharmacist'
+                
+
+                pharmacy_registered.send(sender=self.__class__, pharmacy=pharmacy)
+
+                return Response({
+                    'pharmacy': pharmacy_serializer.data,
+                    'pharmacist': pharmacist_serializer.data
+                }, status=status.HTTP_201_CREATED)
+
+            # If pharmacist data is not valid
+            else:
+                pharmacy.delete()
+                return Response({'error': 'A pharmacy with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        # If pharmacy data is not valid
+        return Response(pharmacy_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PharmacySearchAPIView(APIView):
     def get(self, request, *args, **kwargs):
@@ -218,3 +266,12 @@ class PharmacyStatusReportAPIView(APIView):
             "total_pharmacies": total_count,
             "verification_report": verification_report
         }, status=status.HTTP_200_OK)
+    
+class PharmaciesWithoutPharmacistsAPIView(APIView):
+    def get(self, request):
+        # Get pharmacies that do not have an assigned pharmacist
+        pharmacies_without_pharmacists = Pharmacy.objects.filter(
+            ~Q(id__in=Pharmacist.objects.values_list("pharmacy_id", flat=True))
+        )
+        serializer = PharmacySerializer(pharmacies_without_pharmacists, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

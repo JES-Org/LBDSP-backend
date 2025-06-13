@@ -6,8 +6,7 @@ class CustomBackend(ModelBackend):
         if not username or not password:
             return None
         UserModel = get_user_model()
-
-        # Try to find user by email or phone_number
+       # Try to find user by email or phone_number
         user = None
         if username:
             try:

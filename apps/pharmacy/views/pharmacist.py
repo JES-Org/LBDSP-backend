@@ -48,6 +48,18 @@ class PharmacistDetailAPIView(APIView):
 
     def put(self, request, pk):
         pharmacist = get_object_or_404(Pharmacist, pk=pk)
+        pharmacist_user=pharmacist.user
+        pharmacist_user_id=pharmacist_user.id
+        user_id=request.data['user_id']
+        if(pharmacist_user_id !=user_id):
+            old_pharmacist=get_object_or_404(CustomUser,pk=pharmacist_user_id)
+            old_pharmacist.role="user"
+            old_pharmacist.is_staff=False
+            old_pharmacist.save()
+            new_pharmacist=get_object_or_404(CustomUser,pk=user_id)
+            new_pharmacist.role="pharmacist"
+            new_pharmacist.is_staff=True
+            new_pharmacist.save()
         serializer = PharmacistSerializer(pharmacist, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()

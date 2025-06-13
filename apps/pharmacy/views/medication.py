@@ -100,7 +100,7 @@ class MedicationSearchAPIView(APIView):
         if not query:
             return Response({"error": "Query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        medications = Medication.objects.filter(Q(name__icontains=query) | Q(category__name__icontains=query)).select_related("pharmacy")
+        medications = Medication.objects.filter(Q(name__icontains=query) | Q(category__name__icontains=query) & Q(stock_status=True)).select_related("pharmacy")
         if not medications.exists():
             return Response({"message": "No medications found with matching query"}, status=status.HTTP_404_NOT_FOUND)
         for medication in medications:
@@ -275,7 +275,7 @@ class BrwoseByCategoryView(APIView):
         # Filter categories that have associated medications
         categories_with_medications = Category.objects.annotate(
             medication_count=Count('medication')
-        ).filter(medication_count__gt=0)  # Only categories with medications
+        ).filter(medication_count__gt=0)  
         serializer = CategorySerializer(categories_with_medications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -290,7 +290,7 @@ class SearchByCategoryAPIView(APIView):
         if pharmacy_id:
 
             pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
-            medications = Medication.objects.filter(category=category, pharmacy=pharmacy)
+            medications = Medication.objects.filter(category=category, pharmacy=pharmacy,stock_status=True)
             if not medications.exists():
                 return Response({"message": "No medications found in this category for the specified pharmacy."}, status=status.HTTP_404_NOT_FOUND)
             for medication in medications:
@@ -307,7 +307,7 @@ class SearchByCategoryAPIView(APIView):
             }, status=status.HTTP_200_OK)
 
         # If only category_id is provided, return unique pharmacies that sell medications in this category
-        medications = Medication.objects.filter(category=category).select_related('pharmacy')
+        medications = Medication.objects.filter(category=category,stock_status=True).select_related('pharmacy')
 
         if not medications.exists():
                 return Response({"message": "No medications Found"}, status=status.HTTP_404_NOT_FOUND)
