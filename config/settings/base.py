@@ -1,26 +1,27 @@
 # base.py
-from decouple import config
+# base.py - Updated version
+from pathlib import Path
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+
+# Load environment variables FIRST
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
+from decouple import config
 import dj_database_url
 
+# Now you can safely use config()
 SECRET_KEY = config('SECRET_KEY', default='unsafe-secret-key')
 env = config('ENVIRONMENT', default='production')
-
 DEBUG = env == 'development'
 
 
 
 
-from pathlib import Path
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
