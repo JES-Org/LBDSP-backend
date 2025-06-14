@@ -173,14 +173,13 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    'https://lbdsp-frontend.vercel.app',
+    "https://lbdspfrontend.vercel.app",
     "https://fetanfews.up.railway.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
-     'https://lbdsp-frontend.vercel.app',
-
+    "https://lbdspfrontend.vercel.app",
     "https://fetanfews.up.railway.app",
 ]
 
