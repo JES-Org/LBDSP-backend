@@ -97,9 +97,13 @@ SIMPLE_JWT = {
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-if env == "production":
+# Database configuration
+if os.getenv('ENVIRONMENT') == 'production':
     DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600)
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
 else:
     DATABASES = {
